@@ -46,14 +46,23 @@ request='<AtomLog xmlns="http://api.platform.boomi.com/" atomId='\"$atom\"' logD
 #request download and parse url
 log_url=$(curl -s -u "${user}" -d "${request}" "${api_url}" | xmllint --xpath 'string(/*/@url)' -)
 
-#create path for atom log if doesn't exist
+#create path for atom logs if doesn't exist
 path="${atom}/$(date -d $date +%Y)/$(date -d $date +%m)/$(date -d $date +%d)"
 mkdir -p ${path}
 
 #download file, retry until available
-zip="${path}/temp.zip"
+zip="${atom}/temp.zip"
 size=0
 until [ $size -gt 0 ]; do
     curl -s -o ${zip} -u "${user}" "${log_url}"
     size=$(wc -c < $zip)
 done
+
+#unzip logs into temp dir
+unzip -qo $zip -d ${atom}/temp
+
+#rsync logs to proper path
+rsync ${atom}/temp/* ${path}
+
+#cleanup
+rm -r ${atom}/temp ${atom}/temp.zip
