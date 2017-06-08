@@ -15,16 +15,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-usage() { echo "Usage: $0 -b <boomi_account> -a <atom_id> -u <user>:<pass> [-d <date>]" 1>&2; exit 1; }
+usage() { echo "Usage: $0 -b <boomi_account> -a <atom_id> -u <user>:<pass> [-d <date>] [-c <config>]" 1>&2; exit 1; }
 
 #parse variables
-while getopts b:u:a:d: option; do
+while getopts b:u:a:d:c: option; do
      case "${option}"
          in
          b) acct=${OPTARG};;
          a) atom=${OPTARG};;
          u) user=${OPTARG};;
          d) date=${OPTARG};;
+	 c) . ${OPTARG};;
      esac
 done
 
