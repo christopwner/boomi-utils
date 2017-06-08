@@ -31,7 +31,7 @@ done
 
 #defaults today's date if none provided
 if [ -z "${date}" ]; then
-    date=$(date +%Y-%m-%d)
+    date=$(date +%F)
 fi
 
 #check that account, atom and user passed in
@@ -46,11 +46,12 @@ request='<AtomLog xmlns="http://api.platform.boomi.com/" atomId='\"$atom\"' logD
 #request download and parse url
 log_url=$(curl -s -u "${user}" -d "${request}" "${api_url}" | xmllint --xpath 'string(/*/@url)' -)
 
-#create directory for atom logs if doesn't exist
-mkdir -p ${atom}
+#create path for atom log if doesn't exist
+path="${atom}/$(date -d $date +%Y)/$(date -d $date +%m)/$(date -d $date +%d)"
+mkdir -p ${path}
 
 #download file, retry until available
-zip="${atom}/${date}.zip"
+zip="${path}/temp.zip"
 size=0
 until [ $size -gt 0 ]; do
     curl -s -o ${zip} -u "${user}" "${log_url}"
