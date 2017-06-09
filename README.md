@@ -3,5 +3,5 @@ A collection of utility scripts for [Dell Boomi](https://boomi.com/) using the A
 
 ## get-atom-log
 Retrieves a given atom's log when provided a valid account and login.
-### requirements
+Requirements:
 * libxml2-utils
