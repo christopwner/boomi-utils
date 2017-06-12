@@ -15,16 +15,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-usage() { echo "Usage: $0 -b <boomi_account> -a <atom_id> -u <user>:<pass> [-d <date>] [-c <config>]" 1>&2; exit 1; }
+usage() { echo "Usage: $0 -b <boomi_account> -a <atom_id> -u <user>:<pass> [-d <date>] [-o <out_dir>] [-c <config>]" 1>&2; exit 1; }
 
 #parse variables
-while getopts b:u:a:d:c: option; do
+while getopts b:u:a:d:o:c: option; do
      case "${option}"
          in
          b) acct=${OPTARG};;
          a) atom=${OPTARG};;
          u) user=${OPTARG};;
          d) date=${OPTARG};;
+	 o) path=${OPTARG};;
 	 c) . ${OPTARG};;
      esac
 done
@@ -32,6 +33,11 @@ done
 #defaults today's date if none provided
 if [ -z "${date}" ]; then
     date=$(date +%F)
+fi
+
+#default path to current dir
+if [ -z "${path}" ]; then
+    path=$(pwd)
 fi
 
 #check that account, atom and user passed in
@@ -47,11 +53,12 @@ request='<AtomLog xmlns="http://api.platform.boomi.com/" atomId='\"$atom\"' logD
 log_url=$(curl -s -u "${user}" -d "${request}" "${api_url}" | xmllint --xpath 'string(/*/@url)' -)
 
 #create path for atom logs if doesn't exist
-path="${atom}/$(date -d $date +%Y)/$(date -d $date +%m)/$(date -d $date +%d)"
-mkdir -p ${path}
+path="${path}/${atom}"
+log_path="${path}/$(date -d $date +%Y)/$(date -d $date +%m)/$(date -d $date +%d)"
+mkdir -p ${log_path}
 
 #download file, retry until available
-zip="${atom}/temp.zip"
+zip="${path}/temp.zip"
 size=0
 until [ $size -gt 0 ]; do
     curl -s -o ${zip} -u "${user}" "${log_url}"
@@ -59,10 +66,10 @@ until [ $size -gt 0 ]; do
 done
 
 #unzip logs into temp dir
-unzip -qo $zip -d ${atom}/temp
+unzip -qo $zip -d ${path}/temp
 
 #rsync logs to proper path
-rsync ${atom}/temp/* ${path}
+rsync ${path}/temp/* ${log_path}
 
 #cleanup
-rm -r ${atom}/temp ${atom}/temp.zip
+rm -r ${path}/temp ${path}/temp.zip
