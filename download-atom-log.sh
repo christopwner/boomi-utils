@@ -1,5 +1,5 @@
 #!/bin/bash
-#
+
 # Copyright (C) 2017 Christopher Towner
 #
 # This program is free software: you can redistribute it and/or modify
@@ -14,6 +14,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Utility script for downloading atom logs from Dell Boomi.
+# See: http://help.boomi.com/atomsphere/GUID-7FE23D0D-1250-4140-A156-096261599B58.html
 
 usage() { echo "Usage: $0 -b <boomi_account> -a <atom_id> -u <user>:<pass> [-d <date>] [-o <out_dir>] [-c <config>]" 1>&2; exit 1; }
 
