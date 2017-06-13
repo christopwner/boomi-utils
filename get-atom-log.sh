@@ -45,17 +45,26 @@ if [ -z "${acct}" ] || [ -z "${atom}" ] || [ -z "${user}" ]; then
     usage
 fi
 
-#setup request
-api_url='https://api.boomi.com/api/rest/v1/'${acct}'/AtomLog'
-request='<AtomLog xmlns="http://api.platform.boomi.com/" atomId='\"$atom\"' logDate='\"$date\"' includeBin="true"/>'
-
-#request download and parse url
-log_url=$(curl -s -u "${user}" -d "${request}" "${api_url}" | xmllint --xpath 'string(/*/@url)' -)
-
 #create path for atom logs if doesn't exist
 path="${path}/${atom}"
 log_path="${path}/$(date -d $date +%Y)/$(date -d $date +%m)/$(date -d $date +%d)"
 mkdir -p ${log_path}
+
+#setup request
+api_url='https://api.boomi.com/api/rest/v1/'${acct}'/AtomLog'
+request='<AtomLog xmlns="http://api.platform.boomi.com/" atomId='\"$atom\"' logDate='\"$date\"' includeBin="true"/>'
+
+#request download and parse response
+response_code=$(curl -s -o "${path}/temp.url" -w "%{http_code}" -u "${user}" -d "${request}" "${api_url}")
+
+#check code
+if [ "$response_code" -ne 202 ]; then
+    curl -i -u "${user}" -d "${request}" "${api_url}"
+    exit 1;
+fi
+
+#parse log url
+log_url=$(cat "${path}/temp.url" | xmllint --xpath 'string(/*/@url)' -)
 
 #download file, retry until available
 zip="${path}/temp.zip"
@@ -72,4 +81,4 @@ unzip -qo $zip -d ${path}/temp
 rsync ${path}/temp/* ${log_path}
 
 #cleanup
-rm -r ${path}/temp ${path}/temp.zip
+rm -r ${path}/temp ${path}/temp.zip ${path}/temp.url
