@@ -67,7 +67,7 @@ if [ "$response_code" -ne 202 ]; then
 fi
 
 #parse log url
-log_url=$(cat "${path}/temp.url" | xmllint --xpath 'string(/*/@url)' -)
+log_url=$(xmllint --xpath 'string(/*/@url)' "${path}/temp.url")
 
 #download file, retry until available
 zip="${path}/temp.zip"
