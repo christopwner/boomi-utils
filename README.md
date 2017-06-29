@@ -9,3 +9,6 @@ Download a given atom's container logs when provided a valid account and login.
 
 ## download-process-log
 Downloads process logs for every execution on an atom in the past minute (or given interval).
+
+## read-exe-feed
+Read executions from RSS feed for a given account.
