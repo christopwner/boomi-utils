@@ -3,6 +3,7 @@ A collection of utility scripts for [Dell Boomi](https://boomi.com/) using the A
 
 Requirements:
 * libxml2-utils
+* fluentd (log-* scripts)
 
 ## download-atom-log
 Download a given atom's container logs when provided a valid account and login.
@@ -12,3 +13,6 @@ Downloads process logs for every execution on an atom in the past minute (or giv
 
 ## read-exe-feed
 Read executions from RSS feed for a given account.
+
+## log-execution
+Logs a given execution to fluentd using fluent-cat.

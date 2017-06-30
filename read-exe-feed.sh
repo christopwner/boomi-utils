@@ -29,7 +29,7 @@ while getopts b:o:i:c: option; do
      esac
 done
 
-#default path to current dir
+#default path to current dir, create if doesnt exist
 if [ -z "${path}" ]; then
     path=$(pwd)
 fi
@@ -38,6 +38,9 @@ fi
 if [ -z "${acct}" ]; then
     usage
 fi
+
+#create log path if doesnt exists
+mkdir -p $path
 
 #download feed
 feed=$path/exe-feed.xml
@@ -58,7 +61,7 @@ for (( i = 1; i <= $item_count; i++)); do
     
     #check that item_type equal to exe_type
     item_type=$(xmllint --xpath 'string(/rss/channel/item['$i']/category[3])' ${feed})
-    if [ $item_type != $exe_type ]; then
+    if [ "$item_type" != "$exe_type" ]; then
         echo "Unhandled type:" $item_type
         #uncomment for debugging unhandled types
         #xmllint --xpath '/rss/channel/item['$i']' ${feed}; echo
@@ -80,6 +83,8 @@ for (( i = 1; i <= $item_count; i++)); do
         first_exe_id=${exe_id}
     fi
 
+    #todo log execution here
+    
 done
 
 #store first executed in pos for subsequent runs
