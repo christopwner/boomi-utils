@@ -6,3 +6,6 @@ user=
 
 # Dell Atom Id
 atom=
+
+# Log Path
+path=/var/log/boomi
