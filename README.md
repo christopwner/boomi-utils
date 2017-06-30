@@ -14,5 +14,5 @@ Downloads process logs for every execution on an atom in the past minute (or giv
 ## read-exe-feed
 Read executions from RSS feed for a given account.
 
-## log-execution
-Logs a given execution to fluentd using fluent-cat.
+## log-exe
+Logs a given execution using fluent-cat.

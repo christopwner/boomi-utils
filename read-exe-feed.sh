@@ -83,8 +83,8 @@ for (( i = 1; i <= $item_count; i++)); do
     fi
 
     #retrieve and log execution
-    #echo $exe_date - $exe_id
-    $(dirname "$0")/log-execution.sh -b ${acct} -u ${user} -e ${exe_id} -o ${path}
+    echo $exe_date - $exe_id
+    #$(dirname "$0")/log-exe.sh -b ${acct} -u ${user} -e ${exe_id} -o ${path}
 done
 
 #store first executed in pos for subsequent runs
