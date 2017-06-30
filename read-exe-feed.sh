@@ -17,13 +17,14 @@
 
 # Utility script for reading executions in RSS feed from Dell Boomi.
 
-usage() { echo "Usage: $0 -b <boomi_account> [-o <out_dir>] [-c <config>]" 1>&2; exit 1; }
+usage() { echo "Usage: $0 -b <boomi_account> -u <user>:<pass> [-o <out_dir>] [-c <config>]" 1>&2; exit 1; }
 
 #parse variables
-while getopts b:o:i:c: option; do
+while getopts b:u:o:c: option; do
     case "${option}"
         in
         b) acct=${OPTARG};;
+        u) user=${OPTARG};;
         o) path=${OPTARG};;
         c) . ${OPTARG};;
      esac
@@ -35,7 +36,7 @@ if [ -z "${path}" ]; then
 fi
 
 #check that account, atom and user passed in
-if [ -z "${acct}" ]; then
+if [ -z "${acct}" ] || [ -z "${user}" ]; then
     usage
 fi
 
@@ -46,11 +47,11 @@ mkdir -p $path
 feed=$path/exe-feed.xml
 curl -s -o ${feed} https://platform.boomi.com/account/${acct}/feed/rss-2.0
 
-#read last pos
+#read last pos if exists
 feed_pos=$path/exe-feed.pos
-last_exe_id=$(cat $feed_pos)
-
-echo "last:" $last_exe_id
+if [ -f "${feed_pos}" ]; then
+    last_exe_id=$(cat $feed_pos)
+fi
 
 #hardcoded guid for exe type category in boomi feed
 exe_type='b3dc32d4-0dbe-43a7-9a82-9f15fde812ea'
@@ -62,7 +63,6 @@ for (( i = 1; i <= $item_count; i++)); do
     #check that item_type equal to exe_type
     item_type=$(xmllint --xpath 'string(/rss/channel/item['$i']/category[3])' ${feed})
     if [ "$item_type" != "$exe_type" ]; then
-        echo "Unhandled type:" $item_type
         #uncomment for debugging unhandled types
         #xmllint --xpath '/rss/channel/item['$i']' ${feed}; echo
         continue;
@@ -71,7 +71,6 @@ for (( i = 1; i <= $item_count; i++)); do
     #get date and id from item
     exe_date=$(xmllint --xpath 'string(/rss/channel/item['$i']/pubDate)' ${feed})
     exe_id=$(xmllint --xpath 'string(/rss/channel/item['$i']/guid)' ${feed} |sed 's/^.*executionId=//')
-    echo $exe_date - $exe_id
 
     #if id last in pos (already processed), break from loop
     if [ "$exe_id" == "$last_exe_id" ]; then
@@ -83,15 +82,15 @@ for (( i = 1; i <= $item_count; i++)); do
         first_exe_id=${exe_id}
     fi
 
-    #todo log execution here
-    
+    #retrieve and log execution
+    #echo $exe_date - $exe_id
+    $(dirname "$0")/log-execution.sh -b ${acct} -u ${user} -e ${exe_id} -o ${path}
 done
 
 #store first executed in pos for subsequent runs
 if [ -n "$first_exe_id" ]; then
-    echo "first:" $first_exe_id
     echo "$first_exe_id" > $feed_pos
 fi
 
 #cleanup
-#rm ${feed}
+rm ${feed}

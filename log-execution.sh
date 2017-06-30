@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Utility script for downloading process (execution) logs from Dell Boomi.
+# Utility script for logging process (execution) logs from Dell Boomi with Fluentd.
 
 usage() { echo "Usage: $0 -b <boomi_account> -u <user>:<pass> -e <exe_id> [-o <out_dir>] [-c <config>]" 1>&2; exit 1; }
 
@@ -24,7 +24,7 @@ while getopts b:u:e:o:c: option; do
     case "${option}"
         in
         b) acct=${OPTARG};;
-        a) atom=${OPTARG};;
+        u) user=${OPTARG};;
         e) exe_id=${OPTARG};;
 	    o) path=${OPTARG};;
         c) . ${OPTARG};;
@@ -37,7 +37,7 @@ if [ -z "${path}" ]; then
 fi
 
 #check that account, atom and user passed in
-if [ -z "${acct}" ] || [ -z "${atom}" ] || [ -z "${exe_id}" ]; then
+if [ -z "${acct}" ] || [ -z "${user}" ] || [ -z "${exe_id}" ]; then
     usage
 fi
 
@@ -70,5 +70,8 @@ done
 #unzip logs into temp dir
 unzip -qo $zip -d ${path}
 
+#fluent-cat logs
+cat ${path}/*.log | /usr/local/bin/fluent-cat -f none debug.boomi
+
 #cleanup zip/dl
-rm -r ${path}/temp.zip ${path}/temp.url
+rm -r ${path}
