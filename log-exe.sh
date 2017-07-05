@@ -62,9 +62,15 @@ log_url=$(xmllint --xpath 'string(/*/@url)' "${path}/temp.url")
 #download file, retry until available
 zip="${path}/temp.zip"
 size=0
-until [ $size -gt 0 ]; do
+attempts=0
+until [ "$size" -gt 0 ]; do
     curl -s -o ${zip} -u "${user}" "${log_url}"
     size=$(wc -c < $zip)
+    attempts=$((attempts+1))
+    if [ "$attempts" -gt 60 ]; then
+        echo "Too many attempts for" ${log_url}
+        exit 1;
+    fi
 done
 
 #unzip logs into temp dir
