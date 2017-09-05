@@ -45,6 +45,20 @@ fi
 path="${path}/${exe_id}"
 mkdir -p ${path}
 
+#request additional info about execution
+query_url='https://api.boomi.com/api/rest/v1/'${acct}'/ExecutionRecord/query'
+query_req='<QueryConfig xmlns="http://api.platform.boomi.com/"><QueryFilter><expression operator="EQUALS" property="executionId" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="SimpleExpression"><argument>'${exe_id}'</argument></expression></QueryFilter></QueryConfig>'
+response_code=$(curl -s -o "${path}/temp.info" -w "%{http_code}" -u "${user}" -d "${query_req}" "${query_url}")
+
+#check response is ok
+if [ "$response_code" -ne 200 ]; then
+    echo "Unable to query exe: ${exe_id}"
+    exit 1;
+fi
+
+#parse addition info
+process_name=$(xmllint --xpath "string(//*[local-name()='processName'])" ${path}/temp.info)
+
 #post request for process log
 post_log_url='https://api.boomi.com/api/rest/v1/'${acct}'/ProcessLog'
 post_log_req='<ProcessLog xmlns="http://api.platform.boomi.com/" executionId="'${exe_id}'" logLevel="ALL"/>'
@@ -76,8 +90,8 @@ done
 #unzip logs into temp dir
 unzip -qo $zip -d ${path}
 
-#fluent-cat logs
-cat ${path}/*.log | /usr/local/bin/fluent-cat -f none debug.boomi
+#insert addition info into logs and pipe to fluent-cat
+sed -e 's/^/'${process_name}'	/' ${path}/*.log | /usr/local/bin/fluent-cat -f none debug.boomi
 
 #cleanup zip/dl
 rm -r ${path}
