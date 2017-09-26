@@ -14,5 +14,8 @@ Downloads process logs for every execution on an atom in the past minute (or giv
 ## read-exe-feed
 Read executions from RSS feed for a given account.
 
+## get-scheduled-process-count
+Get a count of scheduled process executions by id within the past interval.
+
 ## log-exe
 Logs a given execution using fluent-cat.
