@@ -6,7 +6,7 @@ Requirements:
 * fluentd (log-* scripts)
 * fluent-cat plugin
 * fluentd elasticsearch plugin
-*** I reccomend using the ruby gem method to install fluentd and the plugins. I had issues getting fluent-cat to work right using TD-agent and other install methods.
+*** I recommend using the ruby gem method to install fluentd and the plugins. I had issues getting fluent-cat to work right using TD-agent and other install methods.
 
 ## download-atom-log
 Download a given atom's container logs when provided a valid account and login.
