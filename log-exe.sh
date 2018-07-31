@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (C) 2017 Christopher Towner
+# Copyright (C) 2018 Christopher Diaz
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,8 @@
 
 # Utility script for logging process (execution) logs from Dell Boomi with Fluentd.
 
-usage() { echo "Usage: $0 -b <boomi_account> -u <user>:<pass> -e <exe_id> [-o <out_dir>] [-c <config>]" 1>&2; exit 1; }
+
+usage() { echo "Usage: $0 -b <boomi_account> -u <user>:<pass> -e <exe_id> [-o </home/chris/boomi-utils/records>] [-c </home/chris/boomi-utils>]" 1>&2; exit 1; }
 
 #parse variables
 while getopts b:u:e:o:c: option; do
@@ -48,7 +49,9 @@ mkdir -p ${path}
 #request additional info about execution
 query_url='https://api.boomi.com/api/rest/v1/'${acct}'/ExecutionRecord/query'
 query_req='<QueryConfig xmlns="http://api.platform.boomi.com/"><QueryFilter><expression operator="EQUALS" property="executionId" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="SimpleExpression"><argument>'${exe_id}'</argument></expression></QueryFilter></QueryConfig>'
+
 response_code=$(curl -s -o "${path}/temp.info" -w "%{http_code}" -u "${user}" -d "${query_req}" "${query_url}")
+
 
 #check response is ok
 if [ "$response_code" -ne 200 ]; then
@@ -81,9 +84,13 @@ until [ "$size" -gt 0 ]; do
     curl -s -o ${zip} -u "${user}" "${log_url}"
     size=$(wc -c < $zip)
     attempts=$((attempts+1))
+
+	#if unable to download, writes entry to backfill.pos to try again later
     if [ "$attempts" -gt 60 ]; then
         echo "Too many attempts for" ${log_url}
-        exit 1;
+		echo "$exe_id" >> ${backfill_pos}
+
+		exit 1;
     fi
 done
 
@@ -91,7 +98,7 @@ done
 unzip -qo $zip -d ${path}
 
 #insert addition info into logs and pipe to fluent-cat
-sed -e 's/^/'${process_name}'	/' ${path}/*.log | /usr/local/bin/fluent-cat -f none debug.boomi
+. $HOME/.profile; sed -e "s/^/${process_name} /" ${path}/*.log | /usr/local/bin/fluent-cat -f none debug.boomi
 
 #cleanup zip/dl
 rm -r ${path}
