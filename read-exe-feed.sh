@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Utility script for logging process (execution) logs from Dell Boomi with Fluentd.
+# Utility script for reading executions in RSS feed from Dell Boomi.
+
 
 
 usage() { echo "Usage: $0 -b <boomi_account> -u <user>:<pass> [-o <out_dir>] [-c <config>]" 1>&2; exit 1; }
