@@ -4,6 +4,9 @@ A collection of utility scripts for [Dell Boomi](https://boomi.com/) using the A
 Requirements:
 * libxml2-utils
 * fluentd (log-* scripts)
+* fluent-cat plugin
+* fluentd elasticsearch plugin
+*** I reccomend using the ruby gem method to install fluentd and the plugins. I had issues getting fluent-cat to work right using TD-agent and other install methods.
 
 ## download-atom-log
 Download a given atom's container logs when provided a valid account and login.
@@ -19,3 +22,6 @@ Get a count of scheduled process executions by id within the past interval.
 
 ## log-exe
 Logs a given execution using fluent-cat.
+
+## fluent.conf
+The configuration to accept logs from the Boomi scripts, and send them to Elasticsearch.

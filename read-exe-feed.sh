@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (C) 2017 Christopher Towner
+# Copyright (C) 2018 Christopher Diaz
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Utility script for reading executions in RSS feed from Dell Boomi.
+
+
 
 usage() { echo "Usage: $0 -b <boomi_account> -u <user>:<pass> [-o <out_dir>] [-c <config>]" 1>&2; exit 1; }
 
@@ -43,6 +45,19 @@ fi
 #create log path if doesnt exists
 mkdir -p $path
 
+#check backfill.pos log for any previously errored downloads
+export backfill_pos=$path/backfill.pos
+if [ -f "${backfill_pos}" ]; then
+	while read backfill_exe_id; do
+		sed -i '1d' ${backfill_pos}
+		echo Backfill entry - $backfill_exe_id
+	    $(dirname "$0")/log-exe.sh -b ${acct} -u ${user} -e ${backfill_exe_id} -o ${path}
+		continue
+	done < ${backfill_pos}
+fi
+
+
+
 #download feed
 feed=$path/exe-feed.xml
 curl -s -o ${feed} https://platform.boomi.com/account/${acct}/feed/rss-2.0
@@ -59,18 +74,17 @@ exe_type='b3dc32d4-0dbe-43a7-9a82-9f15fde812ea'
 #get item count in feed and iterate
 item_count=$(xmllint --xpath 'count(/rss/channel/item)' ${feed})
 for (( i = 1; i <= $item_count; i++)); do
-    
     #check that item_type equal to exe_type
     item_type=$(xmllint --xpath 'string(/rss/channel/item['$i']/category[3])' ${feed})
     if [ "$item_type" != "$exe_type" ]; then
         #uncomment for debugging unhandled types
         #xmllint --xpath '/rss/channel/item['$i']' ${feed}; echo
         continue;
-    fi   
+    fi
 
     #get date and id from item
     exe_date=$(xmllint --xpath 'string(/rss/channel/item['$i']/pubDate)' ${feed})
-    exe_id=$(xmllint --xpath 'string(/rss/channel/item['$i']/guid)' ${feed} |sed 's/^.*executionId=//')
+	exe_id=$(xmllint --xpath 'string(/rss/channel/item['$i']/guid)' ${feed} |sed 's/^.*executionId=//')
 
     #if id last in pos (already processed), break from loop
     if [ "$exe_id" == "$last_exe_id" ]; then
@@ -78,13 +92,14 @@ for (( i = 1; i <= $item_count; i++)); do
     fi
 
     #if first in list, store temp to overwrite pos file
-    if [ -z "$first_exe_id" ]; then 
+    if [ -z "$first_exe_id" ]; then
         first_exe_id=${exe_id}
     fi
 
     #retrieve and log execution
     echo $exe_date - $exe_id
-    #$(dirname "$0")/log-exe.sh -b ${acct} -u ${user} -e ${exe_id} -o ${path}
+    $(dirname "$0")/log-exe.sh -b ${acct} -u ${user} -e ${exe_id} -o ${path}
+
 done
 
 #store first executed in pos for subsequent runs
