@@ -22,3 +22,6 @@ Get a count of scheduled process executions by id within the past interval.
 
 ## log-exe
 Logs a given execution using fluent-cat.
+
+## fluent.conf
+The configuration to accept logs from the Boomi scripts, and send them to Elasticsearch.
